@@ -1,7 +1,6 @@
 import type { Tool } from "@modelcontextprotocol/sdk/types.js";
 import { requireApiKey } from "../auth.js";
-import { getHotList, getAllRoutes } from "../client.js";
-import type { HotListResponse } from "../types.js";
+import { getPlatformData, listAllPlatforms } from "../scraper/index.js";
 
 export const getListTool: Tool = {
   name: "get_hot_list",
@@ -12,7 +11,7 @@ export const getListTool: Tool = {
       api_key: { type: "string", description: "API key for authentication" },
       platform: {
         type: "string",
-        description: "Platform name (e.g., bilibili, weibo, zhihu)",
+        description: "Platform name (e.g., bilibili, weibo, zhihu, github)",
       },
       limit: {
         type: "number",
@@ -36,31 +35,54 @@ export interface GetListArgs {
   no_cache?: boolean;
 }
 
+export interface HotListResponse {
+  name: string;
+  title: string;
+  type: string;
+  description?: string;
+  link?: string;
+  total: number;
+  data?: Array<{
+    id: string;
+    title: string;
+    desc: string;
+    hot: number | string;
+    url: string;
+    mobileUrl?: string;
+  }>;
+  updateTime?: string;
+  fromCache?: boolean;
+  message?: string;
+}
+
 export async function handleGetList(args: GetListArgs): Promise<HotListResponse> {
   requireApiKey(args.api_key);
 
-  const routes = await getAllRoutes();
-  const validPlatforms = routes.map((r) => r.name);
+  const platforms = await listAllPlatforms();
+  const validPlatforms = platforms.map((p) => p.name);
 
   if (!validPlatforms.includes(args.platform)) {
-    const error = new Error(`Unknown platform: ${args.platform}`);
+    const error = new Error(`Unknown platform: ${args.platform}. Available: ${validPlatforms.join(", ")}`);
     (error as any).error = `Unknown platform: ${args.platform}`;
     throw error;
   }
 
-  const data = await getHotList(args.platform, {
-    limit: args.limit,
-    noCache: args.no_cache,
-  });
+  const data = await getPlatformData(args.platform, args.no_cache);
+
+  // 限制返回数量
+  let resultData = data.data || [];
+  if (args.limit && resultData.length > args.limit) {
+    resultData = resultData.slice(0, args.limit);
+  }
 
   return {
     name: data.name,
     title: data.title,
     type: data.type,
-    total: data.total,
-    data: data.data,
-    updateTime: data.updateTime,
-    fromCache: data.fromCache,
-    message: data.message,
+    description: data.description,
+    link: data.link,
+    total: resultData.length,
+    data: resultData,
+    message: `Fetched from ${data.name}`,
   };
 }

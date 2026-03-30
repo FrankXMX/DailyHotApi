@@ -1,7 +1,6 @@
 import type { Tool } from "@modelcontextprotocol/sdk/types.js";
 import { requireApiKey } from "../auth.js";
-import { getAllRoutes } from "../client.js";
-import { PLATFORM_METADATA } from "../types.js";
+import { listAllPlatforms } from "../scraper/index.js";
 
 export const listPlatformsTool: Tool = {
   name: "list_hot_platforms",
@@ -30,17 +29,15 @@ export async function handleListPlatforms(args: {
 }): Promise<ListPlatformsResult> {
   requireApiKey(args.api_key);
 
-  const routes = await getAllRoutes();
-
-  const platforms = routes.map((route) => ({
-    name: route.name,
-    path: route.path,
-    title: PLATFORM_METADATA[route.name]?.title || route.name,
-    description: PLATFORM_METADATA[route.name]?.description || "",
-  }));
+  const platforms = await listAllPlatforms();
 
   return {
-    platforms,
+    platforms: platforms.map((p) => ({
+      name: p.name,
+      path: p.path,
+      title: p.title,
+      description: p.description,
+    })),
     total: platforms.length,
   };
 }

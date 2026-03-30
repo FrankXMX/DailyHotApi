@@ -2,10 +2,67 @@
  * Type definitions for DailyHotApi MCP Server
  */
 
-import type { ListItem, RouterData } from "../../src/types.d.ts";
+// Context (minimal mock for route handlers)
+export type ListContext = any;
 
-// Re-export types from main project for use in MCP server
-export type { ListItem, RouterData };
+// List item in hot list
+export interface ListItem {
+  id: number | string;
+  title: string;
+  cover?: string;
+  author?: string;
+  desc?: string;
+  hot: number | undefined;
+  timestamp: number | undefined;
+  url: string;
+  mobileUrl: string;
+}
+
+// Router response type
+export interface RouterResType {
+  updateTime: string | number;
+  fromCache: boolean;
+  data: ListItem[];
+  message?: string;
+}
+
+// Full router data
+export interface RouterData extends RouterResType {
+  name: string;
+  title: string;
+  type: string;
+  description?: string;
+  params?: Record<string, string | object>;
+  total: number;
+  link?: string;
+}
+
+// Request types
+export interface Get {
+  url: string;
+  headers?: Record<string, string | string[]>;
+  params?: Record<string, string | number>;
+  timeout?: number;
+  noCache?: boolean;
+  ttl?: number;
+  originaInfo?: boolean;
+  responseType?: any;
+}
+
+export interface Post {
+  url: string;
+  headers?: Record<string, string | string[]>;
+  body?: string | object | Buffer | undefined;
+  timeout?: number;
+  noCache?: boolean;
+  ttl?: number;
+  originaInfo?: boolean;
+}
+
+// Options
+export interface Options {
+  [key: string]: string | number | undefined;
+}
 
 // Extended route info for MCP
 export interface RouteInfo {
