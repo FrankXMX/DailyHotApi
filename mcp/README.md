@@ -197,4 +197,3 @@ Claude Code 是 VSCode 插件版本，配置文件位于 `~/.claude/settings.jso
 
 ---
 
-> **备注**: 如果是 Claude Desktop（桌面版），配置文件位于 `~/.config/Claude/claude_desktop_config.json`，配置格式相同。
